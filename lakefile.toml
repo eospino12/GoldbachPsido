@@ -1,0 +1,12 @@
+name = "GoldbachPsido"
+version = "0.1.0"
+defaultTargets = ["GoldbachPsido"]
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+# Sin versión fijada: `lake update` toma la última de Mathlib.
+# Luego copia su lean-toolchain (ver README.md).
+
+[[lean_lib]]
+name = "GoldbachPsido"
