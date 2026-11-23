@@ -1,8 +1,8 @@
 /-
   GoldbachPsido/FiniteCircle.lean
-  El método del círculo "finito": en el grupo cíclico ℤ/M, con M > 2N, la identidad
-  R(N) = (1/M) ∑_j S(j/M)^2 e(-N j/M) es EXACTA. Es la versión discreta de
-  R(N) = ∫_𝕋 S(α)^2 e(-Nα) dα, y es la que usan los cálculos del artículo.
+  The "finite" circle method: in the cyclic group ℤ/M, with M > 2N, the identity
+  R(N) = (1/M) ∑_j S(j/M)^2 e(-N j/M) is EXACT. It is the discrete version of
+  R(N) = ∫_𝕋 S(α)^2 e(-Nα) dα, and it is the one used in the paper's computations.
 -/
 import Mathlib
 
@@ -10,14 +10,14 @@ open Finset
 
 namespace GoldbachPsido
 
-/-- Raíz primitiva `M`-ésima de la unidad `ζ_M = e(1/M) = exp(2πi/M)`. -/
+/-- Primitive `M`-th root of unity `ζ_M = e(1/M) = exp(2πi/M)`. -/
 noncomputable def ζ (M : ℕ) : ℂ := Complex.exp (2 * (Real.pi : ℂ) * Complex.I / (M : ℂ))
 
 theorem ζ_isPrimitiveRoot (M : ℕ) (hM : 0 < M) : IsPrimitiveRoot (ζ M) M :=
   Complex.isPrimitiveRoot_exp M (by omega)
 
-/-- **Lema 6 (ortogonalidad de caracteres de ℤ/M).**
-`∑_{j<M} ζ^{jk} = M` si `M ∣ k`, y `0` en otro caso. -/
+/-- **Lemma 6 (orthogonality of the characters of ℤ/M).**
+`∑_{j<M} ζ^{jk} = M` if `M ∣ k`, and `0` otherwise. -/
 theorem sum_root_pow (M : ℕ) (hM : 0 < M) (k : ℕ) :
     ∑ j ∈ range M, (ζ M) ^ (j * k) = if M ∣ k then (M : ℂ) else 0 := by
   have hprim := ζ_isPrimitiveRoot M hM
@@ -33,12 +33,12 @@ theorem sum_root_pow (M : ℕ) (hM : 0 < M) (k : ℕ) :
       rw [← pow_mul, mul_comm, pow_mul, hprim.pow_eq_one, one_pow]
     simp [h2]
 
-/-- Suma exponencial en la malla `j/M`: `S(j) = ∑_{n ≤ N} c(n) ζ^{jn}`. -/
+/-- Exponential sum on the grid `j/M`: `S(j) = ∑_{n ≤ N} c(n) ζ^{jn}`. -/
 noncomputable def Sgrid (c : ℕ → ℂ) (N M j : ℕ) : ℂ :=
   ∑ n ∈ range (N + 1), c n * (ζ M) ^ (j * n)
 
-/-- Paso 3 del plan: si `2N < M` y `n, m ≤ N`, entonces `M ∣ n + m + (M - N) ↔ m = N - n`
-(porque `0 < M - N ≤ n + m + (M - N) < 2M`). -/
+/-- Step 3 of the plan: if `2N < M` and `n, m ≤ N`, then `M ∣ n + m + (M - N) ↔ m = N - n`
+(because `0 < M - N ≤ n + m + (M - N) < 2M`). -/
 theorem dvd_iff_eq_sub {N M n m : ℕ} (hM : 2 * N < M) (hn : n < N + 1) (hm : m < N + 1) :
     M ∣ n + m + (M - N) ↔ m = N - n := by
   constructor
@@ -49,15 +49,15 @@ theorem dvd_iff_eq_sub {N M n m : ℕ} (hM : 2 * N < M) (hn : n < N + 1) (hm : m
   · intro h
     exact ⟨1, by omega⟩
 
-/-- **Proposición (método del círculo finito).**
-Si `2N < M`, entonces `M · ∑_{n ≤ N} c(n) c(N-n) = ∑_{j<M} S(j)^2 ζ^{j(M-N)}`.
-(El factor `ζ^{j(M-N)} = ζ^{-jN}` evita exponentes negativos.)
+/-- **Proposition (finite circle method).**
+If `2N < M`, then `M · ∑_{n ≤ N} c(n) c(N-n) = ∑_{j<M} S(j)^2 ζ^{j(M-N)}`.
+(The factor `ζ^{j(M-N)} = ζ^{-jN}` avoids negative exponents.)
 
-Plan de prueba:
-1. Expandir `S(j)^2 = ∑_{n,m ≤ N} c n c m ζ^{j(n+m)}` (`Finset.sum_mul_sum`, `sq`).
-2. Intercambiar sumas (`Finset.sum_comm`) y usar `sum_root_pow` con `k = n + m + M - N`.
-3. Como `0 ≤ n + m ≤ 2N < M` y `N < M`, se tiene `M - N ≤ k < 2M`; luego `M ∣ k ↔ n + m = N`.
-4. La suma doble colapsa a `M ∑_{n} c n c (N - n)` (`Finset.sum_ite_eq`). -/
+Proof plan:
+1. Expand `S(j)^2 = ∑_{n,m ≤ N} c n c m ζ^{j(n+m)}` (`Finset.sum_mul_sum`, `sq`).
+2. Swap the sums (`Finset.sum_comm`) and use `sum_root_pow` with `k = n + m + M - N`.
+3. Since `0 ≤ n + m ≤ 2N < M` and `N < M`, we have `M - N ≤ k < 2M`; hence `M ∣ k ↔ n + m = N`.
+4. The double sum collapses to `M ∑_{n} c n c (N - n)` (`Finset.sum_ite_eq`). -/
 theorem finite_circle (c : ℕ → ℂ) (N M : ℕ) (hM : 2 * N < M) :
     (M : ℂ) * ∑ n ∈ range (N + 1), c n * c (N - n) =
       ∑ j ∈ range M, (Sgrid c N M j) ^ 2 * (ζ M) ^ (j * (M - N)) := by
@@ -99,11 +99,11 @@ theorem finite_circle (c : ℕ → ℂ) (N M : ℕ) (hM : 2 * N < M) :
         rw [mul_sum]
         exact sum_congr rfl fun n _ => by ring
 
-/-- **Proposición (método del círculo continuo, SIN DEMOSTRAR AÚN).**
-El coeficiente de Fourier `N`-ésimo de `S^2` en `AddCircle 1` es la convolución.
-Plan: `fourierCoeff` es lineal, `fourier m * fourier n = fourier (m+n)` y
-`fourierCoeff (fourier m) n = if m = n then 1 else 0` (ortonormalidad, `orthonormal_fourier`).
-(Se quitó la hipótesis `[Fact ((0 : ℝ) < 1)]`: Mathlib ya tiene esa instancia global.) -/
+/-- **Proposition (continuous circle method, NOT YET PROVED).**
+The `N`-th Fourier coefficient of `S^2` on `AddCircle 1` is the convolution.
+Plan: `fourierCoeff` is linear, `fourier m * fourier n = fourier (m+n)` and
+`fourierCoeff (fourier m) n = if m = n then 1 else 0` (orthonormality, `orthonormal_fourier`).
+(The hypothesis `[Fact ((0 : ℝ) < 1)]` was removed: Mathlib already has that global instance.) -/
 theorem circle_method (c : ℕ → ℂ) (N : ℕ) :
     AddCircle.fourierCoeff (T := 1)
         (fun x => (∑ n ∈ range (N + 1), c n * AddCircle.fourier (n : ℤ) x) ^ 2) (N : ℤ)
